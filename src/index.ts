@@ -9,6 +9,7 @@ import { stringify } from 'qs'
 import { TimeResponse } from './codecs/TimeResponse'
 
 import * as t from 'io-ts'
+import * as A from 'fp-ts/ReadonlyArray'
 import * as E from 'fp-ts/Either'
 import * as R from 'fp-ts/Record'
 import * as TE from 'fp-ts/TaskEither'
@@ -16,6 +17,105 @@ import * as PathReporter from 'io-ts/lib/PathReporter'
 import { pipe, flow } from 'fp-ts/function'
 import { BalanceResponse } from './codecs/BalanceResponse'
 import { StringifiedJson } from './codecs/StringifiedJson'
+import { OpenPositionsResponse } from './codecs/OpenPositionsResponse'
+import { KrakenError } from './codecs/KrakenError'
+
+type KrakenClientConfig = {
+    key: string
+    secret: string
+    version: number
+    url: string
+    requestTimeoutMS: number
+}
+
+const defaultKrakenClientConfig: Omit<KrakenClientConfig, 'key' | 'secret'> = {
+    version: 0,
+    url: 'https://api.kraken.com',
+    requestTimeoutMS: 5000,
+}
+
+const Empty = t.undefined
+
+type KrakenApiEndpoint<A extends t.Mixed, B extends t.Mixed> = {
+    request?: A
+    response: B
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type KrakenApiEndpointRequest<T> = T extends KrakenApiEndpoint<infer A, any>
+    ? t.TypeOf<A>
+    : never
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type KrakenApiEndpointResponse<T> = T extends KrakenApiEndpoint<any, infer B>
+    ? t.TypeOf<B>
+    : never
+
+const PublicApi = {
+    Time: {
+        request: Empty,
+        response: TimeResponse,
+    },
+    // 'Assets',
+    // 'AssetPairs',
+    // 'Ticker',
+    // 'Depth',
+    // 'Trades',
+    // 'Spread',
+    // 'OHLC',
+} as const
+type PublicApi = typeof PublicApi
+
+// DISCUSS: why a codec for the request type? we're not decoding that,
+// instead leveraging the type system.  I suppose it does allow us to
+// work with JS though, one day. Should output a TE either way
+
+// TODO:
+// FIXME: request parameters should reflect partial nature. Is every
+// single param optional?
+const PrivateApi = {
+    Balance: {
+        // FIXME: this is stubbed, there are actually parameters
+        request: Empty,
+        response: BalanceResponse,
+    },
+    // 'TradeBalance',
+    // 'OpenOrders',
+    // 'ClosedOrders',
+    // 'QueryOrders',
+    // 'TradesHistory',
+    // 'QueryTrades',
+    OpenPositions: {
+        // FIXME: this is stubbed, there are actually parameters
+        request: Empty,
+        response: OpenPositionsResponse,
+    },
+    // 'Ledgers',
+    // 'QueryLedgers',
+    // 'TradeVolume',
+    // 'AddOrder',
+    // 'CancelOrder',
+    // 'DepositMethods',
+    // 'DepositAddresses',
+    // 'DepositStatus',
+    // 'WithdrawInfo',
+    // 'Withdraw',
+    // 'WithdrawStatus',
+    // 'WithdrawCancel',
+    // 'GetWebSocketsToken',
+} as const
+type PrivateApi = typeof PrivateApi
+
+type KrakenClient = {
+    [A in keyof PublicApi]: (
+        request?: KrakenApiEndpointRequest<PublicApi[A]>,
+    ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PublicApi[A]>>
+} &
+    {
+        [A in keyof PrivateApi]: (
+            request?: KrakenApiEndpointRequest<PrivateApi[A]>,
+        ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PrivateApi[A]>>
+    }
 
 // Create a signature for a request
 const getMessageSignature = (
@@ -44,114 +144,20 @@ const getMessageSignature = (
 // Send an API request
 const rawRequest = async (
     url: string,
-    // TODO: type better
-    headers: Record<string, unknown>,
+    headers: Record<string, string>,
     // TODO: type better
     data: Record<string, unknown>,
     timeout: number,
-): Promise<unknown> => {
-    // Set custom User-Agent string
-    headers['User-Agent'] = 'Kraken Javascript API Client'
-
-    const options = { headers, timeout }
-
-    Object.assign(options, {
+): Promise<unknown> =>
+    got(url, {
         method: 'POST',
         body: stringify(data),
-    })
-
-    // TODO: remove as any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return await got(url, options as any).then(({ body }) => body)
-}
-
-type KrakenClientConfig = {
-    key: string
-    secret: string
-    version: number
-    url: string
-    requestTimeoutMS: number
-}
-
-const defaultKrakenClientConfig: Omit<KrakenClientConfig, 'key' | 'secret'> = {
-    version: 0,
-    url: 'https://api.kraken.com',
-    requestTimeoutMS: 5000,
-}
-
-const Empty = t.undefined
-
-type KrakenApiEndpoint<A extends t.Mixed, B extends t.Mixed> = {
-    request?: A
-    response: B
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type KrakenApiEndpointRequest<T> = T extends KrakenApiEndpoint<infer A, infer B>
-    ? t.TypeOf<A>
-    : never
-type KrakenApiEndpointResponse<T> = T extends KrakenApiEndpoint<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    infer A,
-    infer B
->
-    ? t.TypeOf<B>
-    : never
-
-const PublicApi = {
-    Time: {
-        request: Empty,
-        response: TimeResponse,
-    },
-    // 'Assets',
-    // 'AssetPairs',
-    // 'Ticker',
-    // 'Depth',
-    // 'Trades',
-    // 'Spread',
-    // 'OHLC',
-} as const
-type PublicApi = typeof PublicApi
-
-const PrivateApi = {
-    Balance: {
-        // FIXME: this is stubbed, there are actually parameters
-        request: Empty,
-        response: BalanceResponse,
-    },
-    // 'TradeBalance',
-    // 'OpenOrders',
-    // 'ClosedOrders',
-    // 'QueryOrders',
-    // 'TradesHistory',
-    // 'QueryTrades',
-    // 'OpenPositions',
-    // 'Ledgers',
-    // 'QueryLedgers',
-    // 'TradeVolume',
-    // 'AddOrder',
-    // 'CancelOrder',
-    // 'DepositMethods',
-    // 'DepositAddresses',
-    // 'DepositStatus',
-    // 'WithdrawInfo',
-    // 'Withdraw',
-    // 'WithdrawStatus',
-    // 'WithdrawCancel',
-    // 'GetWebSocketsToken',
-} as const
-type PrivateApi = typeof PrivateApi
-
-type KrakenClient = {
-    [A in keyof PublicApi]: (
-        request?: KrakenApiEndpointRequest<PublicApi[A]>,
-    ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PublicApi[A]>>
-} &
-    {
-        [A in keyof PrivateApi]: (
-            request?: KrakenApiEndpointRequest<PrivateApi[A]>,
-        ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PrivateApi[A]>>
-    }
+        headers: Object.assign(
+            { 'User-Agent': 'Kraken Javascript API Client' },
+            headers,
+        ),
+        timeout,
+    }).then(({ body }) => body)
 
 const decodeResponse = <A extends t.Mixed>(responseCodec: A) =>
     flow(
@@ -162,7 +168,6 @@ const decodeResponse = <A extends t.Mixed>(responseCodec: A) =>
                 E.toError,
             ),
         ),
-        TE.fromEither,
     )
 
 // TODO: make the key|secret optional and only return the public endpoints
@@ -189,7 +194,22 @@ export const krakenClient = (
                             ),
                         E.toError,
                     ),
-                    TE.chain(decodeResponse(responseCodec)),
+                    TE.chain(
+                        flow(
+                            decodeResponse(
+                                t.type({
+                                    error: KrakenError,
+                                    result: responseCodec,
+                                }),
+                            ),
+                            E.chain(({ error, result }) =>
+                                A.isNonEmpty(error)
+                                    ? E.left(E.toError(error))
+                                    : E.right(result),
+                            ),
+                            TE.fromEither,
+                        ),
+                    ),
                 ),
         ),
     )
@@ -231,7 +251,22 @@ export const krakenClient = (
                             config.requestTimeoutMS,
                         )
                     }, E.toError),
-                    TE.chain(decodeResponse(responseCodec)),
+                    TE.chain(
+                        flow(
+                            decodeResponse(
+                                t.type({
+                                    error: KrakenError,
+                                    result: responseCodec,
+                                }),
+                            ),
+                            E.chain(({ error, result }) =>
+                                A.isNonEmpty(error)
+                                    ? E.left(E.toError(error))
+                                    : E.right(result),
+                            ),
+                            TE.fromEither,
+                        ),
+                    ),
                 ),
         ),
     )
