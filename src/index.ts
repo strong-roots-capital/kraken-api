@@ -19,6 +19,9 @@ import { BalanceResponse } from './codecs/BalanceResponse'
 import { StringifiedJson } from './codecs/StringifiedJson'
 import { OpenPositionsResponse } from './codecs/OpenPositionsResponse'
 import { KrakenError } from './codecs/KrakenError'
+import { OpenPositionsRequest } from './codecs/OpenPositionsRequest'
+import { AddOrderRequest } from './codecs/AddOrderRequest'
+import { AddOrderResponse } from './codecs/AddOrderResponse'
 
 type KrakenClientConfig = {
     key: string
@@ -37,7 +40,7 @@ const defaultKrakenClientConfig: Omit<KrakenClientConfig, 'key' | 'secret'> = {
 const Empty = t.undefined
 
 type KrakenApiEndpoint<A extends t.Mixed, B extends t.Mixed> = {
-    request?: A
+    request: A
     response: B
 }
 
@@ -70,9 +73,8 @@ type PublicApi = typeof PublicApi
 // instead leveraging the type system.  I suppose it does allow us to
 // work with JS though, one day. Should output a TE either way
 
-// TODO:
-// FIXME: request parameters should reflect partial nature. Is every
-// single param optional?
+// TODO: FIXME: request parameters should reflect partial nature. Is
+// every-single param optional?
 const PrivateApi = {
     Balance: {
         // FIXME: this is stubbed, there are actually parameters
@@ -86,14 +88,16 @@ const PrivateApi = {
     // 'TradesHistory',
     // 'QueryTrades',
     OpenPositions: {
-        // FIXME: this is stubbed, there are actually parameters
-        request: Empty,
+        request: OpenPositionsRequest,
         response: OpenPositionsResponse,
     },
     // 'Ledgers',
     // 'QueryLedgers',
     // 'TradeVolume',
-    // 'AddOrder',
+    AddOrder: {
+        request: AddOrderRequest,
+        response: AddOrderResponse,
+    },
     // 'CancelOrder',
     // 'DepositMethods',
     // 'DepositAddresses',
@@ -162,6 +166,9 @@ const rawRequest = async (
 const decodeResponse = <A extends t.Mixed>(responseCodec: A) =>
     flow(
         StringifiedJson(responseCodec).decode.bind(null),
+        // RESUME: TODO: TODO: RESUME: handle this one!
+        // FIXME: check for KrakenError first, since the response will
+        // be ommitted if there was a server error
         E.mapLeft(
             flow(
                 (errors) => PathReporter.failure(errors).join('\n'),
@@ -170,13 +177,14 @@ const decodeResponse = <A extends t.Mixed>(responseCodec: A) =>
         ),
     )
 
-// TODO: make the key|secret optional and only return the public endpoints
+// FEATURE: make the key|secret optional and only return the public endpoints
 export const krakenClient = (
     clientConfig: Partial<KrakenClientConfig> &
         Pick<KrakenClientConfig, 'key' | 'secret'>,
 ): KrakenClient => {
     const config = Object.assign({}, defaultKrakenClientConfig, clientConfig)
 
+    // FIXME: type inferencing here is defaulting to sum types
     const publicApi = pipe(
         PublicApi,
         R.mapWithIndex(
@@ -214,6 +222,7 @@ export const krakenClient = (
         ),
     )
 
+    // FIXME: type inferencing here is defaulting to sum types
     const privateApi = pipe(
         PrivateApi,
         R.mapWithIndex(
@@ -271,5 +280,7 @@ export const krakenClient = (
         ),
     )
 
-    return Object.assign({}, publicApi, privateApi)
+    // TODO: avoid type assertion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return Object.assign({}, publicApi as any, privateApi as any)
 }

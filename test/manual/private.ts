@@ -14,7 +14,15 @@ const k = krakenClient({
 const exit = (code: 0 | 1): IO.IO<void> => () => process.exit(code)
 
 const main: T.Task<void> = pipe(
-    k.OpenPositions(),
+    k.AddOrder({
+        pair: 'ETHUSD',
+        type: 'buy',
+        ordertype: 'limit',
+        volume: 0.01,
+        leverage: 5,
+        price: 1800,
+        validate: true,
+    }),
     TE.fold(
         flow(
             Console.error,
