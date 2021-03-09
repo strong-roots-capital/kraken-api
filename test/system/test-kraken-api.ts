@@ -6,6 +6,6 @@ import test from 'ava'
 
 import { krakenApi } from '../../src/index'
 
-test.skip('TODO: system-test kraken-api', (t) => {
+test('TODO: system-test kraken-api', (t) => {
     t.fail()
 })

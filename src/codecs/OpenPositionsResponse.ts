@@ -7,6 +7,7 @@ export const OpenPositionsResponse = t.record(
     t.string,
     t.intersection([
         t.type({
+            // FIXME: a KrakenTxId
             ordertxid: t.string,
             // was 'open'
             posstatus: t.string,

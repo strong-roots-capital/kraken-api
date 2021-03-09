@@ -2,13 +2,13 @@
  * @since 0.5.0
  */
 import * as t from 'io-ts'
-import { pipe } from 'fp-ts/lib/pipeable'
-import { chain } from 'fp-ts/lib/Either'
+import { pipe } from 'fp-ts/function'
+import { chain } from 'fp-ts/Either'
 
 /**
  * @since 0.5.0
  */
-export interface DateFromUnixTimeC extends t.Type<Date, number, unknown> {}
+export type DateFromUnixTimeC = t.Type<Date, number>
 
 /**
  * @example

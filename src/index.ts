@@ -9,14 +9,12 @@ import { stringify } from 'qs'
 import { TimeResponse } from './codecs/TimeResponse'
 
 import * as t from 'io-ts'
-import * as A from 'fp-ts/ReadonlyArray'
 import * as E from 'fp-ts/Either'
 import * as R from 'fp-ts/Record'
 import * as TE from 'fp-ts/TaskEither'
 import * as PathReporter from 'io-ts/lib/PathReporter'
-import { pipe, flow } from 'fp-ts/function'
+import { pipe, flow, Endomorphism, identity } from 'fp-ts/function'
 import { BalanceResponse } from './codecs/BalanceResponse'
-import { StringifiedJson } from './codecs/StringifiedJson'
 import { OpenPositionsResponse } from './codecs/OpenPositionsResponse'
 import { KrakenError } from './codecs/KrakenError'
 import { OpenPositionsRequest } from './codecs/OpenPositionsRequest'
@@ -30,6 +28,15 @@ type KrakenClientConfig = {
     url: string
     requestTimeoutMS: number
 }
+
+type KrakenApiError =
+    | { type: 'unable to parse http response'; response: unknown; error: Error }
+    | { type: 'unable to decode codec'; codec: string; error: string }
+    | { type: 'http request error'; error: Error }
+    | { type: 'unexpected http response'; error: string }
+    | { type: 'kraken server error'; error: string[] }
+
+const err: Endomorphism<KrakenApiError> = identity
 
 const defaultKrakenClientConfig: Omit<KrakenClientConfig, 'key' | 'secret'> = {
     version: 0,
@@ -113,12 +120,15 @@ type PrivateApi = typeof PrivateApi
 type KrakenClient = {
     [A in keyof PublicApi]: (
         request?: KrakenApiEndpointRequest<PublicApi[A]>,
-    ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PublicApi[A]>>
+    ) => TE.TaskEither<KrakenApiError, KrakenApiEndpointResponse<PublicApi[A]>>
 } &
     {
         [A in keyof PrivateApi]: (
             request?: KrakenApiEndpointRequest<PrivateApi[A]>,
-        ) => TE.TaskEither<Error, KrakenApiEndpointResponse<PrivateApi[A]>>
+        ) => TE.TaskEither<
+            KrakenApiError,
+            KrakenApiEndpointResponse<PrivateApi[A]>
+        >
     }
 
 // Create a signature for a request
@@ -145,36 +155,88 @@ const getMessageSignature = (
     return hmac_digest
 }
 
+const parseJson = (json: string) =>
+    pipe(
+        E.parseJSON(json, E.toError),
+        E.mapLeft((error) =>
+            err({
+                type: 'unable to parse http response',
+                response: json,
+                error,
+            }),
+        ),
+    )
+
+const decode = <A extends t.Mixed>(codec: A) => (
+    a: unknown,
+): E.Either<KrakenApiError, t.TypeOf<A>> =>
+    pipe(
+        codec.decode(a),
+        E.mapLeft(
+            flow(
+                (errors) => PathReporter.failure(errors).join('\n'),
+                (error) =>
+                    err({
+                        type: 'unable to decode codec',
+                        codec: codec.name,
+                        error,
+                    }),
+            ),
+        ),
+    )
+
+const decodeResponse = <A extends t.Mixed>(responseCodec: A) => (
+    response: string,
+): TE.TaskEither<KrakenApiError, t.TypeOf<A>> =>
+    pipe(
+        parseJson(response),
+        E.chain((parsedResponse) =>
+            pipe(
+                decode(t.type({ error: KrakenError }))(parsedResponse),
+                E.map((response) =>
+                    err({ type: 'kraken server error', error: response.error }),
+                ),
+                E.swap,
+                E.chain(() =>
+                    pipe(
+                        decode(t.type({ result: responseCodec }))(
+                            parsedResponse,
+                        ),
+                        E.map(({ result }) => result),
+                    ),
+                ),
+            ),
+        ),
+        TE.fromEither,
+    )
+
 // Send an API request
-const rawRequest = async (
+const rawRequest = (
     url: string,
     headers: Record<string, string>,
     // TODO: type better
     data: Record<string, unknown>,
     timeout: number,
-): Promise<unknown> =>
-    got(url, {
-        method: 'POST',
-        body: stringify(data),
-        headers: Object.assign(
-            { 'User-Agent': 'Kraken Javascript API Client' },
-            headers,
-        ),
-        timeout,
-    }).then(({ body }) => body)
-
-const decodeResponse = <A extends t.Mixed>(responseCodec: A) =>
-    flow(
-        StringifiedJson(responseCodec).decode.bind(null),
-        // RESUME: TODO: TODO: RESUME: handle this one!
-        // FIXME: check for KrakenError first, since the response will
-        // be ommitted if there was a server error
-        E.mapLeft(
-            flow(
-                (errors) => PathReporter.failure(errors).join('\n'),
-                E.toError,
+): TE.TaskEither<KrakenApiError, string> =>
+    pipe(
+        TE.tryCatch(
+            async () =>
+                got(url, {
+                    method: 'POST',
+                    body: stringify(data),
+                    headers: Object.assign(
+                        { 'User-Agent': 'Kraken Javascript API Client' },
+                        headers,
+                    ),
+                    timeout,
+                }).then(({ body }) => body),
+            flow(E.toError, (error) =>
+                err({ type: 'http request error', error }),
             ),
         ),
+        TE.chain(flow(decode(t.string), TE.fromEither)),
+        // DEBUG
+        TE.map((response) => (console.log(response), response)),
     )
 
 // FEATURE: make the key|secret optional and only return the public endpoints
@@ -190,34 +252,15 @@ export const krakenClient = (
         R.mapWithIndex(
             (apiMethod, { request: requestCodec, response: responseCodec }) => (
                 request: t.TypeOf<typeof requestCodec>,
-            ): TE.TaskEither<Error, t.TypeOf<typeof responseCodec>> =>
+            ): TE.TaskEither<KrakenApiError, t.TypeOf<typeof responseCodec>> =>
                 pipe(
-                    TE.tryCatch(
-                        async () =>
-                            rawRequest(
-                                `${config.url}/${config.version}/public/${apiMethod}`,
-                                {},
-                                request ?? {},
-                                config.requestTimeoutMS,
-                            ),
-                        E.toError,
+                    rawRequest(
+                        `${config.url}/${config.version}/public/${apiMethod}`,
+                        {},
+                        request ?? {},
+                        config.requestTimeoutMS,
                     ),
-                    TE.chain(
-                        flow(
-                            decodeResponse(
-                                t.type({
-                                    error: KrakenError,
-                                    result: responseCodec,
-                                }),
-                            ),
-                            E.chain(({ error, result }) =>
-                                A.isNonEmpty(error)
-                                    ? E.left(E.toError(error))
-                                    : E.right(result),
-                            ),
-                            TE.fromEither,
-                        ),
-                    ),
+                    TE.chain(decodeResponse(responseCodec)),
                 ),
         ),
     )
@@ -228,55 +271,37 @@ export const krakenClient = (
         R.mapWithIndex(
             (apiMethod, { request: requestCodec, response: responseCodec }) => (
                 request: t.TypeOf<typeof requestCodec>,
-            ): TE.TaskEither<Error, t.TypeOf<typeof responseCodec>> =>
-                pipe(
-                    TE.tryCatch(async () => {
-                        const path = `/${config.version}/private/${apiMethod}`
-                        const url = config.url + path
+            ): TE.TaskEither<
+                KrakenApiError,
+                t.TypeOf<typeof responseCodec>
+            > => {
+                const path = `/${config.version}/private/${apiMethod}`
+                const url = config.url + path
 
-                        const request_ = Object.assign(
-                            {
-                                nonce: new Date().getTime() * 1000, // spoof microsecond,
-                            },
-                            request ?? {},
-                        )
+                const request_ = Object.assign(
+                    {
+                        nonce: new Date().getTime() * 1000, // spoof microsecond,
+                    },
+                    request ?? {},
+                )
 
-                        const signature = getMessageSignature(
-                            path,
-                            request_,
-                            config.secret,
-                            request_.nonce,
-                        )
+                const signature = getMessageSignature(
+                    path,
+                    request_,
+                    config.secret,
+                    request_.nonce,
+                )
 
-                        const headers = {
-                            'API-Key': config.key,
-                            'API-Sign': signature,
-                        }
+                const headers = {
+                    'API-Key': config.key,
+                    'API-Sign': signature,
+                }
 
-                        return rawRequest(
-                            url,
-                            headers,
-                            request_,
-                            config.requestTimeoutMS,
-                        )
-                    }, E.toError),
-                    TE.chain(
-                        flow(
-                            decodeResponse(
-                                t.type({
-                                    error: KrakenError,
-                                    result: responseCodec,
-                                }),
-                            ),
-                            E.chain(({ error, result }) =>
-                                A.isNonEmpty(error)
-                                    ? E.left(E.toError(error))
-                                    : E.right(result),
-                            ),
-                            TE.fromEither,
-                        ),
-                    ),
-                ),
+                return pipe(
+                    rawRequest(url, headers, request_, config.requestTimeoutMS),
+                    TE.chain(decodeResponse(responseCodec)),
+                )
+            },
         ),
     )
 

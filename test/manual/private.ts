@@ -20,7 +20,7 @@ const main: T.Task<void> = pipe(
         ordertype: 'limit',
         volume: 0.01,
         leverage: 5,
-        price: 1800,
+        price: 1730.01,
         validate: true,
     }),
     TE.fold(
