@@ -82,6 +82,8 @@ type PublicApi = typeof PublicApi
 
 // TODO: FIXME: request parameters should reflect partial nature. Is
 // every-single param optional?
+
+// TODO: check for new endpoints that aren't in this list yet
 const PrivateApi = {
     Balance: {
         // FIXME: this is stubbed, there are actually parameters
@@ -89,6 +91,7 @@ const PrivateApi = {
         response: BalanceResponse,
     },
     // 'TradeBalance',
+    // TODO: Implement
     // 'OpenOrders',
     // 'ClosedOrders',
     // 'QueryOrders',
@@ -105,7 +108,12 @@ const PrivateApi = {
         request: AddOrderRequest,
         response: AddOrderResponse,
     },
+    // TODO: Implement
     // 'CancelOrder',
+    // TODO: Implement
+    // 'CancelAll'
+    // TODO: Implement this dead-man's switch
+    // 'CancelAllOrdersAfter'
     // 'DepositMethods',
     // 'DepositAddresses',
     // 'DepositStatus',
@@ -235,8 +243,6 @@ const rawRequest = (
             ),
         ),
         TE.chain(flow(decode(t.string), TE.fromEither)),
-        // DEBUG
-        TE.map((response) => (console.log(response), response)),
     )
 
 // FEATURE: make the key|secret optional and only return the public endpoints
