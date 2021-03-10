@@ -1,8 +1,8 @@
 import * as t from 'io-ts'
-import { DateFromUnixTime } from 'io-ts-types'
+import { DateFromKrakenUnixTime } from './DateFromKrakenUnixTime'
 
 export const TimeResponse = t.type({
-    unixtime: DateFromUnixTime,
+    unixtime: DateFromKrakenUnixTime,
     // FIXME: this can be narrowed
     rfc1123: t.string,
 })

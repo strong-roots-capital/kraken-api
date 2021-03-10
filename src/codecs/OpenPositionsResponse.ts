@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { DateFromUnixTime } from './DateFromUnixTime'
+import { DateFromKrakenUnixTime } from './DateFromKrakenUnixTime'
 import { NumberFromString } from 'io-ts-types'
 
 // RESUME (top of the stack): write this codec
@@ -12,7 +12,7 @@ export const OpenPositionsResponse = t.record(
             // was 'open'
             posstatus: t.string,
             pair: t.string,
-            time: DateFromUnixTime,
+            time: DateFromKrakenUnixTime,
             type: t.keyof({
                 buy: null,
                 sell: null,
@@ -32,7 +32,7 @@ export const OpenPositionsResponse = t.record(
             // FIXME: is really StringOfNumber
             margin: t.string,
             terms: t.string,
-            rollovertm: NumberFromString.pipe(DateFromUnixTime),
+            rollovertm: NumberFromString.pipe(DateFromKrakenUnixTime),
             misc: t.string,
             oflags: t.string,
         }),

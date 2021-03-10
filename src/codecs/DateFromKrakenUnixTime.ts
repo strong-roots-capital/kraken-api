@@ -8,7 +8,7 @@ import { chain } from 'fp-ts/Either'
 /**
  * @since 0.5.0
  */
-export type DateFromUnixTimeC = t.Type<Date, number>
+export type DateFromKrakenUnixTimeC = t.Type<Date, number>
 
 /**
  * @example
@@ -17,16 +17,16 @@ export type DateFromUnixTimeC = t.Type<Date, number>
  *
  * const date = new Date(1973, 10, 30)
  * const input = date.getTime() / 1000
- * assert.deepStrictEqual(DateFromUnixTime.decode(input), right(date))
+ * assert.deepStrictEqual(DateFromKrakenUnixTime.decode(input), right(date))
  *
  * @since 0.5.0
  */
-export const DateFromUnixTime: DateFromUnixTimeC = new t.Type<
+export const DateFromKrakenUnixTime: DateFromKrakenUnixTimeC = new t.Type<
     Date,
     number,
     unknown
 >(
-    'DateFromUnixTime',
+    'DateFromKrakenUnixTime',
     (u): u is Date => u instanceof Date,
     (u, c) =>
         pipe(

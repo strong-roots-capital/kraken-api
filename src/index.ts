@@ -20,6 +20,8 @@ import { KrakenError } from './codecs/KrakenError'
 import { OpenPositionsRequest } from './codecs/OpenPositionsRequest'
 import { AddOrderRequest } from './codecs/AddOrderRequest'
 import { AddOrderResponse } from './codecs/AddOrderResponse'
+import { OpenOrdersRequest } from './codecs/OpenOrdersRequest'
+import { OpenOrdersResponse } from './codecs/OpenOrdersResponse'
 
 type KrakenClientConfig = {
     key: string
@@ -91,8 +93,10 @@ const PrivateApi = {
         response: BalanceResponse,
     },
     // 'TradeBalance',
-    // TODO: Implement
-    // 'OpenOrders',
+    OpenOrders: {
+        request: OpenOrdersRequest,
+        response: OpenOrdersResponse,
+    },
     // 'ClosedOrders',
     // 'QueryOrders',
     // 'TradesHistory',
