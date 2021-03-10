@@ -18,8 +18,8 @@ export const OpenPositionsResponse = t.record(
                 sell: null,
             }),
             ordertype: t.keyof({
+                // FIXME: must be more types here (same as OpenOrdersResponse)
                 limit: null,
-                // FIXME: must be more types here
             }),
             // FIXME: is really StringOfNumber
             cost: t.string,

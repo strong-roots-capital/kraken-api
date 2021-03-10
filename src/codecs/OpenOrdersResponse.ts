@@ -24,8 +24,29 @@ export const OpenOrdersResponse = t.record(
                 // starttm: 0,
                 // FIXME: implement this -- 0 seems to mean 'not defined', otherwise a DateFromKrakenUnixTime?
                 // expiretm: 0,
-                // FIXME: couldn't see this nested output
-                descr: t.type({}),
+                descr: t.type({
+                    // TODO: brand to Tradepair
+                    pair: t.string,
+                    type: t.keyof({
+                        buy: null,
+                        sell: null,
+                    }),
+                    ordertype: t.keyof({
+                        // FIXME: must be more types here (same as OpenPositionsResponse)
+                        limit: null,
+                    }),
+                    // FIXME: is really StringOfNumber
+                    price: t.string,
+                    // FIXME: is really StringOfNumber (Note: is 0 when unspecified)
+                    price2: t.string,
+                    // FIXME: improve the below
+                    // Something like '3:1' or 'none'
+                    leverage: t.string,
+                    // human-readable description
+                    order: t.string,
+                    // FIXME: not sure what this is, haven't seen it yet
+                    close: t.string,
+                }),
                 // FIXME: is really StringOfNumber
                 vol: t.string,
                 // FIXME: is really StringOfNumber
