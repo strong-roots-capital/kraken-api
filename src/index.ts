@@ -22,6 +22,8 @@ import { AddOrderRequest } from './codecs/AddOrderRequest'
 import { AddOrderResponse } from './codecs/AddOrderResponse'
 import { OpenOrdersRequest } from './codecs/OpenOrdersRequest'
 import { OpenOrdersResponse } from './codecs/OpenOrdersResponse'
+import { GetWebSocketsTokenRequest } from './codecs/GetWebSocketsTokenRequest'
+import { GetWebSocketsTokenResponse } from './codecs/GetWebSocketsTokenResponse'
 
 type KrakenClientConfig = {
     key: string
@@ -125,7 +127,11 @@ const PrivateApi = {
     // 'Withdraw',
     // 'WithdrawStatus',
     // 'WithdrawCancel',
-    // 'GetWebSocketsToken',
+    // RESUME: implement
+    GetWebSocketsToken: {
+        request: GetWebSocketsTokenRequest,
+        response: GetWebSocketsTokenResponse,
+    },
 } as const
 type PrivateApi = typeof PrivateApi
 

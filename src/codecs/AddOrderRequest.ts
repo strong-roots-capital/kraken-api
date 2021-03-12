@@ -22,7 +22,9 @@ export const AddOrderRequest = t.intersection([
         price: t.number,
         price2: t.number,
         leverage: t.number,
-        // TODO: implement `oflags`
+        // TODO: implement all `oflags`
+        // as a type that encodes to a comma-delimited-string
+        oflags: t.literal('post'),
         // FIXME: this is unix timestamp or "+seconds in the future"
         // starttm: t.number,
         // FIXME: this is unix timestamp or "+seconds in the future"
