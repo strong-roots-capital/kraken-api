@@ -2,13 +2,13 @@
     "name": "@strong-roots-capital/kraken-api",
     "version": "0.0.4",
     "description": "TypeScript library for the Kraken Cryptocurrency Exchange API",
-    "homepage": "https://github.com/strong-roots-capital/npm-kraken-api",
+    "homepage": "https://github.com/strong-roots-capital/kraken-api",
     "bugs": {
-        "url": "https://github.com/strong-roots-capital/npm-kraken-api/issues"
+        "url": "https://github.com/strong-roots-capital/kraken-api/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/strong-roots-capital/npm-kraken-api.git"
+        "url": "git+https://github.com/strong-roots-capital/kraken-api.git"
     },
     "license": "ISC",
     "author": "Eric Crosson <eric.s.crosson@utexas.edu> (https://github.com/EricCrosson)",
