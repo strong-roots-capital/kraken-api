@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { DateFromKrakenUnixTime } from './DateFromKrakenUnixTime'
+import { DateFromKrakenUnixTime } from '../DateFromKrakenUnixTime'
 
 export const TimeResponse = t.type({
     unixtime: DateFromKrakenUnixTime,

@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { DateFromKrakenUnixTime } from './DateFromKrakenUnixTime'
+import { DateFromKrakenUnixTime } from '../DateFromKrakenUnixTime'
 import { NumberFromString } from 'io-ts-types'
 
 // RESUME (top of the stack): write this codec

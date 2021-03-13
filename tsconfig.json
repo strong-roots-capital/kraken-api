@@ -10,7 +10,7 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "lib": ["es6"],
+        "lib": ["es6", "dom"],
         "moduleResolution": "node",
         "outDir": "./dist",
         "declaration": true,
