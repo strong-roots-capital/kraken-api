@@ -16,7 +16,7 @@ const k = krakenClient({
 const exit = (code: 0 | 1): IO.IO<void> => () => process.exit(code)
 
 const main: T.Task<void> = pipe(
-    k.GetWebSocketsToken(),
+    k.CancelAll(),
     TE.fold(
         flow(
             Console.error,

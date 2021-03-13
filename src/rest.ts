@@ -27,6 +27,8 @@ import { OpenPositionsRequest } from './rest-codecs/OpenPositionsRequest'
 import { OpenPositionsResponse } from './rest-codecs/OpenPositionsResponse'
 import { TimeRequest } from './rest-codecs/TimeRequest'
 import { TimeResponse } from './rest-codecs/TimeResponse'
+import { CancelAllRequest } from './rest-codecs/CancelAllRequest'
+import { CancelAllResponse } from './rest-codecs/CancelAllResponse'
 
 type KrakenClientConfig = {
     key: string
@@ -116,8 +118,10 @@ const PrivateApi = {
     },
     // TODO: Implement
     // 'CancelOrder',
-    // TODO: Implement
-    // 'CancelAll'
+    CancelAll: {
+        request: CancelAllRequest,
+        response: CancelAllResponse,
+    },
     // TODO: Implement this dead-man's switch
     // 'CancelAllOrdersAfter'
     // 'DepositMethods',
