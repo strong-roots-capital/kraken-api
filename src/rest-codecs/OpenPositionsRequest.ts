@@ -6,3 +6,5 @@ export const OpenPositionsRequest = t.type({
     docalcs: withFallback(t.boolean, false),
     // FIXME: add `consolidation`
 })
+
+export type OpenPositionsRequest = t.TypeOf<typeof OpenPositionsRequest>

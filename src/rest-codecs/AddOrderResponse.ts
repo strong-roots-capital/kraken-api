@@ -17,3 +17,5 @@ export const AddOrderResponse = t.intersection([
         txid: nonEmptyArray(t.string),
     }),
 ])
+
+export type AddOrderResponse = t.TypeOf<typeof AddOrderResponse>

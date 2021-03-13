@@ -297,6 +297,7 @@ export const krakenClient = (
 
                 const request_ = Object.assign(
                     {
+                        // TODO: drop this spoof bs
                         nonce: new Date().getTime() * 1000, // spoof microsecond,
                     },
                     request ?? {},

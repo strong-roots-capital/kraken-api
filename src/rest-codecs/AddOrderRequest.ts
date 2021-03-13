@@ -27,3 +27,5 @@ export const AddOrderRequest = t.intersection([
         validate: t.boolean,
     }),
 ])
+
+export type AddOrderRequest = t.TypeOf<typeof AddOrderRequest>

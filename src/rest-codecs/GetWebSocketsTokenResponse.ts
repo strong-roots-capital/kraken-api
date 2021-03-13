@@ -6,3 +6,5 @@ export const GetWebSocketsTokenResponse = t.type({
     // number of seconds to expiry
     expires: t.number,
 })
+
+export type GetWebSocketsTokenResponse = t.TypeOf<typeof GetWebSocketsTokenResponse>
