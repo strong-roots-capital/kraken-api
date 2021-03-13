@@ -5,7 +5,7 @@ import { pipe } from 'fp-ts/function'
 import { nonEmptyArray, withEncode } from 'io-ts-types'
 import { OrderType } from '../OrderType'
 
-const OpenOrder = t.partial({
+export const Order = t.partial({
     // FIXME: really StringOfNumber
     cost: t.string,
     descr: t.type({
@@ -60,14 +60,14 @@ const OpenOrder = t.partial({
     vol_exec: t.string,
 })
 
-type OpenOrder = t.TypeOf<typeof OpenOrder>
+export type Order = t.TypeOf<typeof Order>
 
 // NOTE: this is only for the initial snapshot
 export const OpenOrdersMessage = withEncode(
     t.tuple([
         nonEmptyArray(
             // FIXME: domain is really a Kraken Order ID
-            t.record(t.string, OpenOrder),
+            t.record(t.string, Order),
         ),
         t.literal('openOrders'),
         t.type({
@@ -84,7 +84,7 @@ export const OpenOrdersMessage = withEncode(
                         (orderid, v) => Object.assign(v, { orderid }),
                         // FIXME: orderid can be narrowed to Kraken Order ID
                     )(record) as A.ReadonlyNonEmptyArray<
-                        OpenOrder & { orderid: string }
+                        Order & { orderid: string }
                     >,
             ),
         ),
