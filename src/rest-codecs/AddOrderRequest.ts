@@ -1,4 +1,5 @@
 import * as t from 'io-ts'
+import { OrderType } from '../OrderType'
 
 export const AddOrderRequest = t.intersection([
     t.type({
@@ -7,15 +8,7 @@ export const AddOrderRequest = t.intersection([
             buy: null,
             sell: null,
         }),
-        ordertype: t.keyof({
-            market: null,
-            limit: null,
-            'stop-loss': null,
-            'take-profit': null,
-            'stop-loss-limit': null,
-            'take-profit-limit': null,
-            'settle-position': null,
-        }),
+        ordertype: OrderType,
         volume: t.number,
     }),
     t.partial({

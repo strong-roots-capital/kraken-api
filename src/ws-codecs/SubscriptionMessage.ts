@@ -17,10 +17,10 @@ export const SubscriptionMessage = <C extends t.Mixed>(codec: C) =>
             pipe(
                 t.UnknownArray.validate(u, c),
                 E.chainFirst((u) => t.Int.validate(u[0], c)),
-                E.chainFirst((u) => codec.validate(u.slice(1), c)),
+                E.chain((u) => codec.decode(u.slice(1))),
                 E.fold(
                     () => t.failure(u, c),
-                    (u) => t.success(u as SubscriptionMessage),
+                    (u) => t.success(u),
                 ),
             ),
         JSON.stringify,

@@ -17,6 +17,7 @@ type OhlcPayload = {
     count: t.Int
 }
 
+// io-ts tuple only accepts 5, so we've got this abomination
 const OhlcPayload = new t.Type<OhlcPayload, string, unknown>(
     'OhlcPayload',
     (u: unknown): u is OhlcPayload =>

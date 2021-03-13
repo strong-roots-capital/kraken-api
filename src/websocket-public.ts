@@ -1,12 +1,12 @@
-import WebSocket from 'ws'
 import Debug from 'debug'
+import WebSocket from 'ws'
 import * as t from 'io-ts'
 import * as O from 'fp-ts/Option'
 import * as E from 'fp-ts/Either'
 import * as R from 'fp-ts/Record'
 import { pipe, constVoid } from 'fp-ts/function'
 import { match, when } from 'ts-pattern'
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket'
+import { webSocket } from 'rxjs/webSocket'
 import { BehaviorSubject } from 'rxjs'
 import { SubscriptionMessage } from './ws-codecs/SubscriptionMessage'
 import { SubscriptionResponse } from './ws-codecs/SubscriptionResponse'
@@ -16,44 +16,39 @@ import { SubscriptionChannel } from './ws-codecs/SubscriptionChannel'
 import { ChannelMessage } from './ws-codecs/ChannelMessage'
 import { SpreadMessage } from './ws-codecs/SpreadMessage'
 import { OhlcMessage } from './ws-codecs/OhlcMessage'
+import { safeReqID } from './reqid'
 
 const debug = {
     ws: Debug('kraken:websocket')
 }
 
-const url = 'wss://ws.kraken.com' as const
-
-// type KrakenWsApiEndpoint<A extends t.Mixed, B extends t.Mixed> = {
-//     request: A
-//     response: B
-// }
-
 export type KrakenPublicWebsocket = {
-    __tag: 'KrakenPublicWebSocket',
-    subject: WebSocketSubject<ChannelMessage[]>
     subscribe(request: {channel: 'spread', pairs: string[]}): Promise<BehaviorSubject<SpreadMessage[]>>;
     subscribe(request: {channel: 'ohlc', pairs: string[]}): Promise<BehaviorSubject<OhlcMessage[]>>;
 }
 
 export const krakenPublicWebsocket = (): KrakenPublicWebsocket => {
 
-    let reqID = 0
     const subscribers: Record<string, BehaviorSubject<ChannelMessage[]>> = {}
     let pending: Record<string, (value: BehaviorSubject<ChannelMessage[]>) => void> = {}
 
-    const subject = webSocket({
-        url,
+    const subject = webSocket<ChannelMessage[]>({
+        url: 'wss://ws.kraken.com',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         WebSocketCtor: WebSocket as any,
     })
 
-    function subscribe(request: {channel: SubscriptionChannel, pairs: string[]}) {
-        const reqid = reqID++
+    async function subscribe(request: {channel: 'spread', pairs: string[]}): Promise<BehaviorSubject<SpreadMessage[]>>;
+    async function subscribe(request: {channel: 'ohlc', pairs: string[]}): Promise<BehaviorSubject<OhlcMessage[]>>;
+    async function subscribe(request: {channel: SubscriptionChannel, pairs: string[]}) {
+
+        const reqid = safeReqID()
 
         return new Promise((resolve) => {
 
             pending[reqid] = resolve
 
+            // send the subscribe request to kraken
             subject.next({
                 event: 'subscribe',
                 pair: request.pairs,
@@ -61,19 +56,22 @@ export const krakenPublicWebsocket = (): KrakenPublicWebsocket => {
                     name: request.channel,
                 },
                 reqid,
-            })
+                // Need to bypass the type system here because the subject
+                // has no way to type input and output separately
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any)
         })
     }
 
+    // handle messages at the library level to implement inverse-multiplexing
     subject.subscribe(
-        message => match(message)
+        message => match<unknown>(message)
             .with(when(SubscriptionMessage(ChannelMessage).is), a => {
                 const id = a[0]
                 a.shift()
 
                 pipe(
-                    a,
-                    ChannelMessage.decode.bind(null),
+                    ChannelMessage.decode(a),
                     E.map(
                         decoded => pipe(
                             match<t.TypeOf<typeof ChannelMessage>, ChannelMessage>(decoded)
@@ -82,8 +80,10 @@ export const krakenPublicWebsocket = (): KrakenPublicWebsocket => {
                                 .exhaustive(),
                             encoded => pipe(
                                 R.lookup(id.toString())(subscribers),
-                                O.map(subscriber => subscriber.next([encoded])),
-                                O.getOrElse(() => console.warn('received message for unknown subscriber:', id, a))
+                                O.fold(
+                                    () => console.warn('received message for unknown subscriber:', id, a),
+                                    subscriber => subscriber.next([encoded])
+                                ),
                             )
                         )
                     ),
@@ -104,17 +104,10 @@ export const krakenPublicWebsocket = (): KrakenPublicWebsocket => {
             })
             .with(when(Heartbeat.is), constVoid)
             .with(when(SystemStatusMessage.is), debug.ws)
-            .otherwise(() => console.warn('unmatched message:', message)),
+            .otherwise(() => console.warn('unmatched message:', JSON.stringify(message, null, 2))),
         console.error,
         constVoid,
     )
 
-    return Object.assign(
-        {
-            subject,
-            subscribe
-        }
-    )
+    return {subscribe}
 }
-
-// TODO: create the private websocket
