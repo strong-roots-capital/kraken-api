@@ -42,7 +42,7 @@ export const krakenPrivateWebsocket =
             krakenClient(restAuthentication),
             client => client.GetWebSocketsToken(),
             TE.map(({ token }) => token),
-            TE.getOrElseW(error => {throw E.toError(error)}),
+            TE.getOrElseW(error => { throw E.toError(JSON.stringify(error)) }),
             invokeTask => invokeTask()
         )
 
