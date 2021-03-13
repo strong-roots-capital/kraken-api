@@ -1,6 +1,6 @@
 {
     "name": "@strong-roots-capital/kraken-api",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "TypeScript library for the Kraken Cryptocurrency Exchange API",
     "homepage": "https://github.com/strong-roots-capital/kraken-api",
     "bugs": {
