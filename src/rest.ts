@@ -38,7 +38,7 @@ type KrakenClientConfig = {
     requestTimeoutMS: number
 }
 
-type KrakenApiError =
+export type KrakenApiError =
     | { type: 'unable to parse http response'; response: unknown; error: Error }
     | { type: 'unable to decode codec'; codec: string; error: string }
     | { type: 'http request error'; error: Error }
