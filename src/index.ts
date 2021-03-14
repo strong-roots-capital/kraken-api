@@ -6,6 +6,7 @@ export * from './ws-codecs/index'
 
 // Codecs
 export * from './ClassifiedCurrency'
+export * from './ClassifiedTradepair'
 export * from './DateFromKrakenUnixTime'
 export * from './KrakenOrderID'
 export * from './OrderType'

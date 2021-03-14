@@ -37,7 +37,7 @@ const Asset = t.intersection([
     }),
 ])
 
-// Domain is actually KrakenOrderID
+// Domain is actually ClassifiedTradepair
 export const AssetPairsResponse = t.record(t.string, Asset)
 
 export type AssetPairsResponse = t.TypeOf<typeof AssetPairsResponse>

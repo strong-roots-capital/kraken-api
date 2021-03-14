@@ -4,14 +4,14 @@ import { NumberFromString } from 'io-ts-types'
 import { OrderType } from '../OrderType'
 import { KrakenOrderID } from '../KrakenOrderID'
 import { StringOfNumber } from '../StringOfNumber'
-import { ClassifiedCurrency } from '../ClassifiedCurrency'
+import { ClassifiedTradepair } from '../ClassifiedTradepair'
 
 export const OpenPosition = t.intersection([
     t.type({
         ordertxid: KrakenOrderID,
         // was 'open'
         posstatus: t.string,
-        pair: ClassifiedCurrency,
+        pair: ClassifiedTradepair,
         time: DateFromKrakenUnixTime,
         type: t.keyof({
             buy: null,
