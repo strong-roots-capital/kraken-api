@@ -6,6 +6,7 @@ import { DateFromKrakenUnixTime } from '../DateFromKrakenUnixTime'
 import { OrderType } from '../OrderType'
 import { KrakenOrderID } from '../KrakenOrderID'
 import { StringOfNumber } from '../StringOfNumber'
+import { WebsocketTradepair } from '../WebsocketTradepair'
 
 export const OwnTrade = t.type({
     cost: StringOfNumber,
@@ -13,8 +14,7 @@ export const OwnTrade = t.type({
     margin: StringOfNumber,
     ordertxid: KrakenOrderID,
     ordertype: OrderType,
-    // FIXME: really Tradepair (with a /)
-    pair: t.string,
+    pair: WebsocketTradepair,
     postxid: KrakenOrderID,
     price: StringOfNumber,
     time: NumberFromString.pipe(DateFromKrakenUnixTime),
