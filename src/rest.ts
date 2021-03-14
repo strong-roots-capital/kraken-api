@@ -29,6 +29,7 @@ import { TimeRequest } from './rest-codecs/TimeRequest'
 import { TimeResponse } from './rest-codecs/TimeResponse'
 import { CancelAllRequest } from './rest-codecs/CancelAllRequest'
 import { CancelAllResponse } from './rest-codecs/CancelAllResponse'
+import { CancelOrderRequest, CancelOrderResponse } from './rest-codecs'
 
 type KrakenClientConfig = {
     key: string
@@ -116,8 +117,10 @@ const PrivateApi = {
         request: AddOrderRequest,
         response: AddOrderResponse,
     },
-    // TODO: Implement
-    // 'CancelOrder',
+    CancelOrder: {
+        request: CancelOrderRequest,
+        response: CancelOrderResponse,
+    },
     CancelAll: {
         request: CancelAllRequest,
         response: CancelAllResponse,
