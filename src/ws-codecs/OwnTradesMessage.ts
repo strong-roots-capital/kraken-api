@@ -25,7 +25,7 @@ export const OwnTrade = t.type({
     vol: StringOfNumber,
 })
 
-type OwnTrade = t.TypeOf<typeof OwnTrade>
+export type OwnTrade = t.TypeOf<typeof OwnTrade>
 
 export const OwnTradesMessage = withEncode(
     t.tuple([
