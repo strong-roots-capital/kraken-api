@@ -4,7 +4,7 @@ import { Tradepair } from '../Tradepair'
 import { ClassifiedCurrency } from '../ClassifiedCurrency'
 import { StringOfNumber } from '../StringOfNumber'
 
-const codomain = t.intersection([
+const Asset = t.intersection([
     t.type({
         altname: Tradepair,
         // This might just be t.literal('currency')?
@@ -37,4 +37,4 @@ const codomain = t.intersection([
     }),
 ])
 
-export const AssetPairsResponse = t.record(t.string, codomain)
+export const AssetPairsResponse = t.record(t.string, Asset)

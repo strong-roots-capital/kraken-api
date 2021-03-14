@@ -4,6 +4,7 @@ import { NumberFromString } from 'io-ts-types'
 import { OrderType } from '../OrderType'
 import { KrakenOrderID } from '../KrakenOrderID'
 import { StringOfNumber } from '../StringOfNumber'
+import { ClassifiedCurrency } from '../ClassifiedCurrency'
 
 export const OpenPositionsResponse = t.record(
     KrakenOrderID,
@@ -12,8 +13,7 @@ export const OpenPositionsResponse = t.record(
             ordertxid: KrakenOrderID,
             // was 'open'
             posstatus: t.string,
-            // Something like XXBTZUSD
-            pair: t.string,
+            pair: ClassifiedCurrency,
             time: DateFromKrakenUnixTime,
             type: t.keyof({
                 buy: null,

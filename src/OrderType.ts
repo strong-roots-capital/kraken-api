@@ -9,3 +9,5 @@ export const OrderType = t.keyof({
     'take-profit-limit': null,
     'settle-position': null,
 })
+
+export type OrderType = t.TypeOf<typeof OrderType>
