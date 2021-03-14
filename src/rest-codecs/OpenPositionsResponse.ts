@@ -36,3 +36,5 @@ export const OpenPositionsResponse = t.record(
         }),
     ]),
 )
+
+export type OpenPositionsResponse = t.TypeOf<typeof OpenPositionsResponse>

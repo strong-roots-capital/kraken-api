@@ -24,13 +24,12 @@ export const OwnTrade = t.type({
     }),
     vol: StringOfNumber,
 })
+
 type OwnTrade = t.TypeOf<typeof OwnTrade>
 
 export const OwnTradesMessage = withEncode(
     t.tuple([
-        nonEmptyArray(
-            t.record(KrakenOrderID, OwnTrade),
-        ),
+        nonEmptyArray(t.record(KrakenOrderID, OwnTrade)),
         t.literal('ownTrades'),
         t.type({
             sequence: t.number,
@@ -40,9 +39,8 @@ export const OwnTradesMessage = withEncode(
         message: a[1],
         trades: pipe(
             a[0],
-            A.reduce(
-                {} as Record<KrakenOrderID, OwnTrade>,
-                (acc, trade) => Object.assign(acc, trade),
+            A.reduce({} as Record<KrakenOrderID, OwnTrade>, (acc, trade) =>
+                Object.assign(acc, trade),
             ),
         ),
     }),
