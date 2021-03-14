@@ -39,7 +39,8 @@ export const OwnTradesMessage = withEncode(
         message: a[1],
         trades: pipe(
             a[0],
-            A.reduce({} as Record<KrakenOrderID, OwnTrade>, (acc, trade) =>
+            // Note: domain is actually a KrakenOrderID,
+            A.reduce({} as Record<string, OwnTrade>, (acc, trade) =>
                 Object.assign(acc, trade),
             ),
         ),
