@@ -29,7 +29,7 @@ export type OwnTrade = t.TypeOf<typeof OwnTrade>
 
 export const OwnTradesMessage = withEncode(
     t.tuple([
-        nonEmptyArray(t.record(KrakenOrderID, OwnTrade)),
+        nonEmptyArray(t.record(t.string, OwnTrade)),
         t.literal('ownTrades'),
         t.type({
             sequence: t.number,

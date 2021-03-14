@@ -63,9 +63,7 @@ export type Order = t.TypeOf<typeof Order> & { orderid: KrakenOrderID }
 // NOTE: this is only for the initial snapshot
 export const OpenOrdersMessage = withEncode(
     t.tuple([
-        nonEmptyArray(
-            t.record(KrakenOrderID, Order),
-        ),
+        nonEmptyArray(t.record(t.string, Order)),
         t.literal('openOrders'),
         t.type({
             sequence: t.number,
@@ -78,9 +76,9 @@ export const OpenOrdersMessage = withEncode(
             a[0],
             A.chain(
                 (record) =>
-                    R.collect(
-                        (orderid, v) => Object.assign(v, { orderid }),
-                    )(record) as A.ReadonlyNonEmptyArray<
+                    R.collect((orderid, v) => Object.assign(v, { orderid }))(
+                        record,
+                    ) as A.ReadonlyNonEmptyArray<
                         Order & { orderid: KrakenOrderID }
                     >,
             ),
