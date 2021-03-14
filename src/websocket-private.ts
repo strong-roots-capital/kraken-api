@@ -18,6 +18,7 @@ import { AuthenticatedSubscriptionMessage } from './ws-codecs/AuthenticatedSubsc
 import { OwnTradesMessage } from './ws-codecs/OwnTradesMessage'
 import { OpenOrdersMessage } from './ws-codecs/OpenOrdersMessage'
 import { AuthenticatedSubscriptionResponse } from './ws-codecs/AuthenticatedSubscriptionResponse'
+import { AuthenticatedSubscriptionChannel } from './ws-codecs/AuthenticatedSubscriptionChannel'
 
 const debug = {
     ws: Debug('kraken:websocket'),
@@ -26,6 +27,7 @@ const debug = {
 } as const
 
 export type KrakenPrivateWebsocket = {
+    subscribe(request: {channel: 'ownTrades'}): Promise<BehaviorSubject<OwnTradesMessage[]>>;
     subscribe(request: {channel: 'openOrders'}): Promise<BehaviorSubject<OpenOrdersMessage[]>>;
 }
 
@@ -49,8 +51,9 @@ export const krakenPrivateWebsocket =
             invokeTask => invokeTask()
         )
 
-        async function subscribe(request: {channel: 'openOrders'}): Promise<BehaviorSubject<OpenOrdersMessage[]>>;
-        async function subscribe(request: { channel: 'openOrders' }) {
+        async function subscribe(request: { channel: 'ownTrades' }): Promise<BehaviorSubject<OwnTradesMessage[]>>;
+        async function subscribe(request: { channel: 'openOrders' }): Promise<BehaviorSubject<OpenOrdersMessage[]>>;
+        async function subscribe(request: { channel: AuthenticatedSubscriptionChannel }) {
 
             const token = await tokenPromise
 

@@ -4,10 +4,11 @@ import * as R from 'fp-ts/ReadonlyRecord'
 import { pipe } from 'fp-ts/function'
 import { nonEmptyArray, withEncode } from 'io-ts-types'
 import { OrderType } from '../OrderType'
+import { KrakenOrderID } from '../KrakenOrderID'
+import { StringOfNumber } from '../StringOfNumber'
 
 const Order = t.partial({
-    // FIXME: really StringOfNumber
-    cost: t.string,
+    cost: StringOfNumber,
     descr: t.type({
         // FIXME: really StringOfNumber or empty string
         // close: "",
@@ -18,10 +19,8 @@ const Order = t.partial({
         ordertype: OrderType,
         // FIXME: really a tradepair with a /
         pair: t.string,
-        // FIXME: really StringOfNumber
-        price: t.string,
-        // FIXME: really StringOfNumber
-        price2: t.string,
+        price: StringOfNumber,
+        price2: StringOfNumber,
         type: t.keyof({
             buy: null,
             sell: null,
@@ -29,21 +28,17 @@ const Order = t.partial({
     }),
     // FIXME: really string of a date in kraken time or it's zero, so /shrug
     expiretm: t.union([t.null, t.string]),
-    // FIXME: really StringOfNumber
-    fee: t.string,
-    // FIXME: really StringOfNumber
-    limitprice: t.string,
+    fee: StringOfNumber,
+    limitprice: StringOfNumber,
     // misc: "",
     // oflags: "fcib",
     // FIXME: really string of a date in kraken time or it's zero, so /shrug
     // opentm: "0.000000",
 
-    // FIXME: really StringOfNumber
     // NOTE: this doesn't seem to exist???
-    // price: t.string,
+    // price: StringOfNumber,
 
-    // FIXME: really a Kraken Order ID or null
-    refid: t.union([t.null, t.string]),
+    refid: t.union([t.null, KrakenOrderID]),
     starttm: t.union([t.null, t.string]),
     status: t.keyof({
         open: null,
@@ -51,13 +46,11 @@ const Order = t.partial({
         canceled: null,
         closed: null,
     }),
-    // FIXME: really StringOfNumber
-    stopprice: t.string,
+    stopprice: StringOfNumber,
+    // FIXME: implement this
     // userref: 0,
-    // FIXME: really StringOfNumber
-    vol: t.string,
-    // FIXME: really StringOfNumber
-    vol_exec: t.string,
+    vol: StringOfNumber,
+    vol_exec: StringOfNumber,
 })
 
 // Here we force `orderid` to exist, which is how the
@@ -65,15 +58,13 @@ const Order = t.partial({
 // is not true from the point-of-view of the Order codec.
 // As protection against this contradiction, we do not export
 // the Order codec for external use.
-// FIXME: orderid can be narrowed to Kraken Order ID
-export type Order = t.TypeOf<typeof Order> & { orderid: string }
+export type Order = t.TypeOf<typeof Order> & { orderid: KrakenOrderID }
 
 // NOTE: this is only for the initial snapshot
 export const OpenOrdersMessage = withEncode(
     t.tuple([
         nonEmptyArray(
-            // FIXME: domain is really a Kraken Order ID
-            t.record(t.string, Order),
+            t.record(KrakenOrderID, Order),
         ),
         t.literal('openOrders'),
         t.type({
@@ -89,9 +80,8 @@ export const OpenOrdersMessage = withEncode(
                 (record) =>
                     R.collect(
                         (orderid, v) => Object.assign(v, { orderid }),
-                        // FIXME: orderid can be narrowed to Kraken Order ID
                     )(record) as A.ReadonlyNonEmptyArray<
-                        Order & { orderid: string }
+                        Order & { orderid: KrakenOrderID }
                     >,
             ),
         ),

@@ -12,7 +12,7 @@ const ws = krakenPrivateWebsocket(auth)
 
 async function main() {
     const stream = await ws.subscribe({
-        channel: 'openOrders',
+        channel: 'ownTrades',
     })
 
     stream.subscribe(

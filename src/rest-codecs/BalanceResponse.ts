@@ -1,6 +1,7 @@
 import * as t from 'io-ts'
+import { StringOfNumber } from '../StringOfNumber'
 
-// FIXME: domain can be narrowed, is a string of a number
-export const BalanceResponse = t.record(t.string, t.string)
+// FIXME: domain is a Tradepair
+export const BalanceResponse = t.record(t.string, StringOfNumber)
 
 export type BalanceResponse = t.TypeOf<typeof BalanceResponse>

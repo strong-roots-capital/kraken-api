@@ -1,14 +1,15 @@
 import * as t from 'io-ts'
 import { DateFromKrakenUnixTime } from '../DateFromKrakenUnixTime'
 import { NumberFromString } from 'io-ts-types'
+import { OrderType } from '../OrderType'
+import { KrakenOrderID } from '../KrakenOrderID'
+import { StringOfNumber } from '../StringOfNumber'
 
-// RESUME (top of the stack): write this codec
 export const OpenPositionsResponse = t.record(
-    t.string,
+    KrakenOrderID,
     t.intersection([
         t.type({
-            // FIXME: a KrakenTxId
-            ordertxid: t.string,
+            ordertxid: KrakenOrderID,
             // was 'open'
             posstatus: t.string,
             pair: t.string,
@@ -17,30 +18,20 @@ export const OpenPositionsResponse = t.record(
                 buy: null,
                 sell: null,
             }),
-            ordertype: t.keyof({
-                // FIXME: must be more types here (same as OpenOrdersResponse)
-                limit: null,
-            }),
-            // FIXME: is really StringOfNumber
-            cost: t.string,
-            // FIXME: is really StringOfNumber
-            fee: t.string,
-            // FIXME: is really StringOfNumber
-            vol: t.string,
-            // FIXME: is really StringOfNumber
-            vol_closed: t.string,
-            // FIXME: is really StringOfNumber
-            margin: t.string,
+            ordertype: OrderType,
+            cost: StringOfNumber,
+            fee: StringOfNumber,
+            vol: StringOfNumber,
+            vol_closed: StringOfNumber,
+            margin: StringOfNumber,
             terms: t.string,
             rollovertm: NumberFromString.pipe(DateFromKrakenUnixTime),
             misc: t.string,
             oflags: t.string,
         }),
         t.partial({
-            // FIXME: is really StringOfNumber
-            value: t.string,
-            // FIXME: is really StringOfNumber
-            net: t.string,
+            value: StringOfNumber,
+            net: StringOfNumber,
         }),
     ]),
 )

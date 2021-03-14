@@ -1,5 +1,6 @@
 import * as t from 'io-ts'
 import { nonEmptyArray } from 'io-ts-types/nonEmptyArray'
+import { KrakenOrderID } from '../KrakenOrderID'
 
 export const AddOrderResponse = t.intersection([
     t.type({
@@ -13,8 +14,7 @@ export const AddOrderResponse = t.intersection([
         ]),
     }),
     t.partial({
-        // FIXME: a KrakenTxId
-        txid: nonEmptyArray(t.string),
+        txid: nonEmptyArray(KrakenOrderID),
     }),
 ])
 

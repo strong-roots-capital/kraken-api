@@ -1,12 +1,14 @@
 import * as t from 'io-ts'
+import { OrderType } from '../OrderType'
 import { DateFromKrakenUnixTime } from '../DateFromKrakenUnixTime'
+import { KrakenOrderID } from '../KrakenOrderID'
+import { StringOfNumber } from '../StringOfNumber'
 
 export const OpenOrdersResponse = t.record(
     // FIXME: narrow this type, seen: 'open',
     t.string,
     t.record(
-        // FIXME: Kraken order id
-        t.string,
+        KrakenOrderID,
         t.intersection([
             t.type({
                 // FIXME: not sure what this is
@@ -31,14 +33,9 @@ export const OpenOrdersResponse = t.record(
                         buy: null,
                         sell: null,
                     }),
-                    ordertype: t.keyof({
-                        // FIXME: must be more types here (same as OpenPositionsResponse)
-                        limit: null,
-                    }),
-                    // FIXME: is really StringOfNumber
-                    price: t.string,
-                    // FIXME: is really StringOfNumber (Note: is 0 when unspecified)
-                    price2: t.string,
+                    ordertype: OrderType,
+                    price: StringOfNumber,
+                    price2: StringOfNumber,
                     // FIXME: improve the below
                     // Something like '3:1' or 'none'
                     leverage: t.string,
@@ -47,20 +44,13 @@ export const OpenOrdersResponse = t.record(
                     // FIXME: not sure what this is, haven't seen it yet
                     close: t.string,
                 }),
-                // FIXME: is really StringOfNumber
-                vol: t.string,
-                // FIXME: is really StringOfNumber
-                vol_exec: t.string,
-                // FIXME: is really StringOfNumber
-                cost: t.string,
-                // FIXME: is really StringOfNumber
-                fee: t.string,
-                // FIXME: is really StringOfNumber
-                price: t.string,
-                // FIXME: is really StringOfNumber
-                stopprice: t.string,
-                // FIXME: is really StringOfNumber
-                limitprice: t.string,
+                vol: StringOfNumber,
+                vol_exec: StringOfNumber,
+                cost: StringOfNumber,
+                fee: StringOfNumber,
+                price: StringOfNumber,
+                stopprice: StringOfNumber,
+                limitprice: StringOfNumber,
                 misc: t.string,
                 oflags: t.keyof({
                     // volume in quote currency

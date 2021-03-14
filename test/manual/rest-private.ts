@@ -16,9 +16,7 @@ const k = krakenClient({
 const exit = (code: 0 | 1): IO.IO<void> => () => process.exit(code)
 
 const main: T.Task<void> = pipe(
-    k.CancelOrder({
-        txid: 'O3L74V-UNGXN-2WC7BJ',
-    }),
+    k.OpenPositions(),
     TE.fold(
         flow(
             Console.error,
