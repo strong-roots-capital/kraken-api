@@ -5,7 +5,7 @@ import { pipe } from 'fp-ts/function'
 import { nonEmptyArray, withEncode } from 'io-ts-types'
 import { OrderType } from '../OrderType'
 
-export const Order = t.partial({
+const Order = t.partial({
     // FIXME: really StringOfNumber
     cost: t.string,
     descr: t.type({
@@ -60,7 +60,13 @@ export const Order = t.partial({
     vol_exec: t.string,
 })
 
-export type Order = t.TypeOf<typeof Order>
+// Here we force `orderid` to exist, which is how the
+// websocket delivers OpenOrderMessages, even though this
+// is not true from the point-of-view of the Order codec.
+// As protection against this contradiction, we do not export
+// the Order codec for external use.
+// FIXME: orderid can be narrowed to Kraken Order ID
+export type Order = t.TypeOf<typeof Order> & { orderid: string }
 
 // NOTE: this is only for the initial snapshot
 export const OpenOrdersMessage = withEncode(
@@ -74,6 +80,7 @@ export const OpenOrdersMessage = withEncode(
             sequence: t.number,
         }),
     ]),
+    // NOTE: this doesn't encode each order with the Order codec
     (a) => ({
         message: a[1],
         orders: pipe(
