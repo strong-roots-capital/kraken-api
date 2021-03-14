@@ -4,7 +4,7 @@ import { Tradepair } from '../Tradepair'
 import { ClassifiedCurrency } from '../ClassifiedCurrency'
 import { StringOfNumber } from '../StringOfNumber'
 
-const Asset = t.intersection([
+export const Asset = t.intersection([
     t.type({
         altname: Tradepair,
         // This might just be t.literal('currency')?
@@ -36,6 +36,8 @@ const Asset = t.intersection([
         ordermin: StringOfNumber,
     }),
 ])
+
+export type Asset = t.TypeOf<typeof Asset>
 
 // Domain is actually ClassifiedTradepair
 export const AssetPairsResponse = t.record(t.string, Asset)
