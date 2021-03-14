@@ -37,6 +37,4 @@ const codomain = t.intersection([
     }),
 ])
 
-export const AssetPairsResponse = t.record(ClassifiedCurrency, codomain)
-
-export type AssetPairsResponse = Record<string, t.TypeOf<typeof codomain>>
+export const AssetPairsResponse = t.record(t.string, codomain)
