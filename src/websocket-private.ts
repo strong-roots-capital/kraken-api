@@ -6,10 +6,11 @@ import * as O from 'fp-ts/Option'
 import * as R from 'fp-ts/Record'
 import * as TE from 'fp-ts/TaskEither'
 import { webSocket } from 'rxjs/webSocket'
-import { constVoid, pipe } from 'fp-ts/function'
+import { constVoid, flow, pipe } from 'fp-ts/function'
 import { match, when } from 'ts-pattern'
 import { krakenClient } from './rest'
 import { BehaviorSubject } from 'rxjs'
+import { trace } from '@strong-roots-capital/trace'
 import { Heartbeat } from './ws-codecs/Heartbeat'
 import { SystemStatusMessage } from './ws-codecs/SystemStatusMessage'
 import { AuthenticatedChannelMessage } from './ws-codecs/AuthenticatedChannelMessage'
@@ -19,8 +20,10 @@ import { OpenOrdersMessage } from './ws-codecs/OpenOrdersMessage'
 import { AuthenticatedSubscriptionResponse } from './ws-codecs/AuthenticatedSubscriptionResponse'
 
 const debug = {
-    ws: Debug('kraken:websocket')
-}
+    ws: Debug('kraken:websocket'),
+    openOrders: Debug('kraken:orders'),
+    ownTrades: Debug('kraken:trades'),
+} as const
 
 export type KrakenPrivateWebsocket = {
     subscribe(request: {channel: 'openOrders'}): Promise<BehaviorSubject<OpenOrdersMessage[]>>;
@@ -79,8 +82,14 @@ export const krakenPrivateWebsocket =
                         E.map(
                             decoded => pipe(
                                 match<t.TypeOf<typeof AuthenticatedChannelMessage>, AuthenticatedChannelMessage>(decoded)
-                                    .with(when(OwnTradesMessage.is), OwnTradesMessage.encode.bind(null))
-                                    .with(when(OpenOrdersMessage.is), OpenOrdersMessage.encode.bind(null))
+                                    .with(when(OwnTradesMessage.is), flow(
+                                        OwnTradesMessage.encode.bind(null),
+                                        trace(debug.ownTrades),
+                                    ))
+                                    .with(when(OpenOrdersMessage.is), flow(
+                                        OpenOrdersMessage.encode.bind(null),
+                                        trace(debug.openOrders),
+                                    ))
                                     .exhaustive(),
                                 encoded => pipe(
                                     R.lookup(encoded.message)(subscribers),

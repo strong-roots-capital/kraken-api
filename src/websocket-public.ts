@@ -4,10 +4,11 @@ import * as t from 'io-ts'
 import * as O from 'fp-ts/Option'
 import * as E from 'fp-ts/Either'
 import * as R from 'fp-ts/Record'
-import { pipe, constVoid } from 'fp-ts/function'
+import { pipe, constVoid, flow } from 'fp-ts/function'
 import { match, when } from 'ts-pattern'
 import { webSocket } from 'rxjs/webSocket'
 import { BehaviorSubject } from 'rxjs'
+import { trace } from '@strong-roots-capital/trace'
 import { SubscriptionMessage } from './ws-codecs/SubscriptionMessage'
 import { SubscriptionResponse } from './ws-codecs/SubscriptionResponse'
 import { Heartbeat } from './ws-codecs/Heartbeat'
@@ -19,7 +20,9 @@ import { OhlcMessage } from './ws-codecs/OhlcMessage'
 import { safeReqID } from './reqid'
 
 const debug = {
-    ws: Debug('kraken:websocket')
+    ws: Debug('kraken:websocket'),
+    ohlc: Debug('kraken:ohlc'),
+    spread: Debug('kraken:spread'),
 }
 
 export type KrakenPublicWebsocket = {
@@ -75,8 +78,14 @@ export const krakenPublicWebsocket = (): KrakenPublicWebsocket => {
                     E.map(
                         decoded => pipe(
                             match<t.TypeOf<typeof ChannelMessage>, ChannelMessage>(decoded)
-                                .with(when(SpreadMessage.is), SpreadMessage.encode.bind(null))
-                                .with(when(OhlcMessage.is), OhlcMessage.encode.bind(null))
+                                .with(when(SpreadMessage.is), flow(
+                                    SpreadMessage.encode.bind(null),
+                                    trace(debug.spread),
+                                ))
+                                .with(when(OhlcMessage.is), flow(
+                                    OhlcMessage.encode.bind(null),
+                                    trace(debug.ohlc),
+                                ))
                                 .exhaustive(),
                             encoded => pipe(
                                 R.lookup(id.toString())(subscribers),

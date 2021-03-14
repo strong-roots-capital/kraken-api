@@ -43,6 +43,7 @@
         ]
     },
     "dependencies": {
+        "@strong-roots-capital/trace": "^1.0.0",
         "debug": "^4.3.1",
         "fp-ts": "^2.9.5",
         "got": "^11.1.4",
