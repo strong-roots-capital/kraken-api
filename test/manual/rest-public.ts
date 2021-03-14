@@ -14,16 +14,19 @@ const k = krakenClient({
 const exit = (code: 0 | 1): IO.IO<void> => () => process.exit(code)
 
 const main: T.Task<void> = pipe(
-    k.Time(),
+    k.AssetPairs(),
     TE.fold(
         flow(
             Console.error,
             IO.chain(() => exit(1)),
             T.fromIO,
         ),
-        flow(Console.log, IO.map(constVoid), T.fromIO),
+        flow(
+            Console.log,
+            IO.map(constVoid),
+            T.fromIO,
+        ),
     ),
-    (value) => value,
 )
 
 main()

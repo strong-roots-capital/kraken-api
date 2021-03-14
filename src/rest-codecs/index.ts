@@ -1,5 +1,7 @@
 export * from './AddOrderRequest'
 export * from './AddOrderResponse'
+export * from './AssetPairsRequest'
+export * from './AssetPairsResponse'
 export * from './BalanceRequest'
 export * from './BalanceResponse'
 export * from './CancelAllRequest'

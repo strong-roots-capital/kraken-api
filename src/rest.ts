@@ -13,23 +13,27 @@ import * as R from 'fp-ts/Record'
 import * as TE from 'fp-ts/TaskEither'
 import * as PathReporter from 'io-ts/lib/PathReporter'
 import { pipe, flow, Endomorphism, identity } from 'fp-ts/function'
-
-import { AddOrderRequest } from './rest-codecs/AddOrderRequest'
-import { AddOrderResponse } from './rest-codecs/AddOrderResponse'
-import { BalanceRequest } from './rest-codecs/BalanceRequest'
-import { BalanceResponse } from './rest-codecs/BalanceResponse'
-import { GetWebSocketsTokenRequest } from './rest-codecs/GetWebSocketsTokenRequest'
-import { GetWebSocketsTokenResponse } from './rest-codecs/GetWebSocketsTokenResponse'
-import { KrakenError } from './rest-codecs/KrakenError'
-import { OpenOrdersRequest } from './rest-codecs/OpenOrdersRequest'
-import { OpenOrdersResponse } from './rest-codecs/OpenOrdersResponse'
-import { OpenPositionsRequest } from './rest-codecs/OpenPositionsRequest'
-import { OpenPositionsResponse } from './rest-codecs/OpenPositionsResponse'
-import { TimeRequest } from './rest-codecs/TimeRequest'
-import { TimeResponse } from './rest-codecs/TimeResponse'
-import { CancelAllRequest } from './rest-codecs/CancelAllRequest'
-import { CancelAllResponse } from './rest-codecs/CancelAllResponse'
-import { CancelOrderRequest, CancelOrderResponse } from './rest-codecs'
+import {
+    AddOrderRequest,
+    AddOrderResponse,
+    AssetPairsRequest,
+    AssetPairsResponse,
+    BalanceRequest,
+    BalanceResponse,
+    CancelAllRequest,
+    CancelAllResponse,
+    CancelOrderRequest,
+    CancelOrderResponse,
+    GetWebSocketsTokenRequest,
+    GetWebSocketsTokenResponse,
+    KrakenError,
+    OpenOrdersRequest,
+    OpenOrdersResponse,
+    OpenPositionsRequest,
+    OpenPositionsResponse,
+    TimeRequest,
+    TimeResponse,
+} from './rest-codecs'
 
 type KrakenClientConfig = {
     key: string
@@ -75,7 +79,10 @@ const PublicApi = {
         response: TimeResponse,
     },
     // 'Assets',
-    // 'AssetPairs',
+    AssetPairs: {
+        request: AssetPairsRequest,
+        response: AssetPairsResponse,
+    },
     // 'Ticker',
     // 'Depth',
     // 'Trades',

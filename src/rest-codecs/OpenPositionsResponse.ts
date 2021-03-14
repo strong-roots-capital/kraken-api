@@ -12,6 +12,7 @@ export const OpenPositionsResponse = t.record(
             ordertxid: KrakenOrderID,
             // was 'open'
             posstatus: t.string,
+            // Something like XXBTZUSD
             pair: t.string,
             time: DateFromKrakenUnixTime,
             type: t.keyof({
