@@ -17,7 +17,7 @@ export const AddOrderRequest = t.intersection([
         leverage: t.number,
         // TODO: implement all `oflags`
         // as a type that encodes to a comma-delimited-string
-        oflags: t.literal('post'),
+        oflags: t.literal('post,fciq'),
         // FIXME: this is unix timestamp or "+seconds in the future"
         // starttm: t.number,
         // FIXME: this is unix timestamp or "+seconds in the future"

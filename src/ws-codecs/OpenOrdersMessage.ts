@@ -53,6 +53,9 @@ const Order = t.partial({
     vol_exec: StringOfNumber,
 })
 
+// SMELL: probably better to export a type like WebsocketOrder and
+// export the above codec and below type unmolested
+
 // Here we force `orderid` to exist, which is how the
 // websocket delivers OpenOrderMessages, even though this
 // is not true from the point-of-view of the Order codec.
