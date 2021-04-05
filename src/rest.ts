@@ -12,7 +12,7 @@ import * as E from 'fp-ts/Either'
 import * as R from 'fp-ts/Record'
 import * as TE from 'fp-ts/TaskEither'
 import * as PathReporter from 'io-ts/lib/PathReporter'
-import { pipe, flow, Endomorphism, identity } from 'fp-ts/function'
+import { pipe, flow, Endomorphism, identity, constant } from 'fp-ts/function'
 import {
     AddOrderRequest,
     AddOrderResponse,
@@ -284,7 +284,19 @@ export const krakenClient = (
                     rawRequest(
                         `${config.url}/${config.version}/public/${apiMethod}`,
                         {},
-                        request ?? {},
+                        // FIXME: brutal type massacre
+                        pipe(
+                            E.fromNullable([])(request as unknown),
+                            E.chain(
+                                flow(
+                                    requestCodec.decode.bind(null),
+                                    E.map(requestCodec.encode.bind(null)),
+                                ),
+                            ),
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            E.map((value) => value as any),
+                            E.getOrElse(constant({})),
+                        ),
                         config.requestTimeoutMS,
                     ),
                     TE.chain(decodeResponse(responseCodec)),
@@ -305,12 +317,25 @@ export const krakenClient = (
                 const path = `/${config.version}/private/${apiMethod}`
                 const url = config.url + path
 
-                const request_ = Object.assign(
-                    {
-                        // TODO: drop this spoof bs
-                        nonce: new Date().getTime() * 1000, // spoof microsecond,
-                    },
-                    request ?? {},
+                // FIXME: brutal type massacre here
+                const request_ = pipe(
+                    E.fromNullable([])(request as unknown),
+                    E.chain(
+                        flow(
+                            (a) => requestCodec.decode(a),
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            E.map((a: any) => (requestCodec as any).encode(a)),
+                        ),
+                    ),
+                    E.getOrElse(constant({})),
+                    (request) =>
+                        Object.assign(
+                            {
+                                // TODO: drop this spoof bs
+                                nonce: new Date().getTime() * 1000, // spoof microsecond,
+                            },
+                            request,
+                        ),
                 )
 
                 const signature = getMessageSignature(
